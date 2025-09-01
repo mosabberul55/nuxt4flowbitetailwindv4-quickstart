@@ -3,9 +3,9 @@ interface CookieOptions {
     priority: 'high' | 'low' | 'medium';
     secure: boolean;
     size: number;
-    sameSite: 'strict' | 'lax' | 'none';
-    default: () => string | null;
-    watch: boolean;
+    sameSite?: 'strict' | 'lax' | 'none';
+    default?: () => string | null;
+    watch?: boolean;
 }
 
 const commonCookieOptions: CookieOptions = {
@@ -13,9 +13,6 @@ const commonCookieOptions: CookieOptions = {
     priority: 'high',
     secure: true,
     size: 20480,
-    sameSite: 'lax',
-    default: () => null,
-    watch: true
 };
 
 // Core composable similar to confirmation.ts style
