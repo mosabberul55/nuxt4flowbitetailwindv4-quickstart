@@ -74,7 +74,7 @@ export const useAuthStore = defineStore('auth', () => {
             if ((data.value as any)?.roles) {
                 delete (data.value as any).roles
             }
-            await setUser(data.value ?? null)
+            // await setUser(data.value ?? null)
         }
         return { data, error, execute, refresh }
     }
