@@ -1,6 +1,14 @@
 <script setup lang="ts">
 const authStore = useAuthStore()
-await authStore.getLoggedUser()
+await useAsyncData('getLoggedUser', async () => {
+  try {
+    await authStore.getLoggedUser()
+    return authStore.user
+  } catch (e) {
+    console.error('Error fetching user:', String(e))
+    return null
+  }
+})
 </script>
 <template>
   <NuxtLayout>

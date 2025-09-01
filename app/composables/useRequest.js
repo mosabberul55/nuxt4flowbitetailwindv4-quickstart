@@ -1,46 +1,47 @@
-const createRequest = async (url, method, body = null) => {
+import { accessToken } from '~/composables/useCookies';
+export function useRequest() {
     const config = useRuntimeConfig();
-    const fbp = useCookie('_fbp');
-    const fbc = useCookie('_fbc');
-    const clickId = useCookie("click_id");
-    const { data, status, error, refresh, clear } = await useFetch(url, {
-        baseURL: config.public.baseURL,
-        method: method,
-        body,
-        onRequest({request, options}) {
-            options.headers.set('Authorization', `Bearer ${accessToken()}`)
-            options.headers.set('Accept', 'application/json')
-            options.headers.set('Content-Type', 'application/json')
-            options.headers.set('X-FBP', fbp.value || '');
-            options.headers.set('X-FBC', fbc.value || '');
-            options.headers.set('X-Click-ID', clickId.value || '');
-        },
 
-        onRequestError({}) {
-            // Handle the request errors
-        },
-        onResponse({}) {
-            // Handle the response object
-        },
-        onResponseError({}) {
-            // Handle the response errors
-        }
-    });
+    const createRequest = async (url, method, body = null) => {
+        const token =  accessToken?.();
+        const { data, status, error, refresh, clear } = await useFetch(url, {
+            baseURL: config.public.baseURL,
+            method,
+            body,
+            onRequest({ options }) {
+                if (token) options.headers.set('Authorization', `Bearer ${token}`);
+                options.headers.set('Accept', 'application/json');
+                options.headers.set('Content-Type', 'application/json');
+            },
+        });
+        return { data, status, error, refresh, clear };
+    };
 
-    return {data, status, error, refresh, clear};
+    const getData = async (url) => createRequest(url, 'GET');
+    const postData = async (url, body) => createRequest(url, 'POST', body);
+    const putData = async (url, body) => createRequest(url, 'PUT', body);
+    const deleteData = async (url) => createRequest(url, 'DELETE');
+
+    return { getData, postData, putData, deleteData, createRequest };
 }
 
+// Backward-compatible named exports
 export const getData = async (url) => {
-    return createRequest(url, 'GET');
+    const { getData } = useRequest();
+    return await getData(url);
 };
 
 export const postData = async (url, body) => {
-    return createRequest(url, 'POST', body);
+    const { postData } = useRequest();
+    return await postData(url, body);
 };
+
 export const putData = async (url, body) => {
-    return createRequest(url, 'PUT', body);
+    const { putData } = useRequest();
+    return await putData(url, body);
 };
 
 export const deleteData = async (url) => {
-    return createRequest(url, 'DELETE');
+    const { deleteData } = useRequest();
+    return await deleteData(url);
 };
