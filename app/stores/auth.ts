@@ -39,15 +39,28 @@ export const useAuthStore = defineStore('auth', () => {
         resetAllCookies()
     }
 
+    // small internal helper to DRY token+user handling from auth endpoints
+    async function applyAuthPayload(data: any) {
+        if (!data) return
+        const tokenVal = data.value?.token ?? null
+        const userVal = data.value?.user ?? null
+        // Strip roles if present before storing user
+        if (userVal && userVal.roles) {
+            // avoid mutating original object if it's shared; shallow clone
+            const { roles, ...rest } = userVal
+            await setToken(tokenVal)
+            await setUser(rest)
+            return
+        }
+        await setToken(tokenVal)
+        await setUser(userVal)
+    }
+
     async function login(payload: any) {
         // @ts-ignore - postData provided by Nuxt composable in project
         const { data, error, execute, refresh } = await postData('auth/login', payload)
         if (data) {
-            await setToken(data.value?.token ?? null)
-            if (data.value?.user?.roles) {
-                if (data.value?.user) delete data.value.user.roles
-            }
-            await setUser(data.value?.user ?? null)
+            await applyAuthPayload(data)
         }
         return { data, error, execute, refresh }
     }
@@ -57,11 +70,7 @@ export const useAuthStore = defineStore('auth', () => {
         // @ts-ignore - postData provided by Nuxt composable in project
         const { data, error, execute, refresh } = await postData('auth/signup', payload)
         if (data) {
-            await setToken(data.value?.token ?? null)
-            if (data.value?.user?.roles) {
-                if (data.value?.user) delete data.value.user.roles
-            }
-            await setUser(data.value?.user ?? null)
+            await applyAuthPayload(data)
         }
         return { data, error, execute, refresh }
     }
