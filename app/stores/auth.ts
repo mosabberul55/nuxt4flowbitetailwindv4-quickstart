@@ -8,9 +8,6 @@ import {
 } from '~/composables/useCookies'
 
 type Token = string | null
-// User is stored in cookie as string in current composable; we keep it as any|string|null for compatibility
-// If elsewhere you stringify the user, adjust accordingly.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type User = any | string | null
 
 export const useAuthStore = defineStore('auth', () => {
@@ -31,7 +28,9 @@ export const useAuthStore = defineStore('auth', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async function setUser(newUser: any) {
         user.value = newUser
-        setUserCookie(newUser)
+        if (process.client) {
+            setUserCookie(newUser)
+        }
     }
 
     async function clearAuth() {
@@ -74,7 +73,7 @@ export const useAuthStore = defineStore('auth', () => {
             if ((data.value as any)?.roles) {
                 delete (data.value as any).roles
             }
-            // await setUser(data.value ?? null)
+            await setUser(data.value ?? null)
         }
         return { data, error, execute, refresh }
     }
